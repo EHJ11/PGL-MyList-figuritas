@@ -1,98 +1,249 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import React, { useState } from "react";
+import {
+  FlatList,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+type Product = {
+  id: number;
+  name: string;
+  price: number;
+  category: string;
+};
 
-export default function HomeScreen() {
+type Screen = "home" | "add" | "list";
+
+export default function Index() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [screen, setScreen] = useState<Screen>("home");
+
+  const [name, setName] = useState("");
+  const [price, setPrice] = useState("");
+  const [category, setCategory] = useState("");
+
+  const handleAddProduct = () => {
+    if (!name || !price || !category) return;
+
+    const newProduct: Product = {
+      id: Date.now(),
+      name,
+      price: parseFloat(price),
+      category,
+    };
+
+    setProducts([...products, newProduct]);
+
+    setName("");
+    setPrice("");
+    setCategory("");
+    setScreen("list");
+  };
+
+  const totalProductos = products.length;
+  const totalPrecio = products.reduce((acc, p) => acc + p.price, 0);
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+    <SafeAreaView style={styles.container}>
+      {screen === "home" && (
+        <View style={styles.inner}>
+          <Text style={styles.title}>Figuras de plomo.es</Text>
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+          {products.length === 0 ? (
+            <Text style={styles.emptyText}>No hay productos creados</Text>
+          ) : (
+            <FlatList
+              data={products}
+              keyExtractor={(item) => item.id.toString()}
+              renderItem={({ item }) => (
+                <View style={styles.productItem}>
+                  <Text style={styles.productName}>{item.name}</Text>
+                  <Text>{item.category}</Text>
+                  <Text style={styles.productPrice}>
+                    €{item.price.toFixed(2)}
+                  </Text>
+                </View>
+              )}
+            />
+          )}
+
+          <TouchableOpacity
+            style={styles.buttonPrimary}
+            onPress={() => setScreen("add")}
+          >
+            <Text style={styles.buttonText}>Añadir producto</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {screen === "add" && (
+        <View style={styles.inner}>
+          <Text style={styles.title}>Añadir Figura</Text>
+
+          <TextInput
+            style={styles.input}
+            placeholder="Nombre del producto"
+            value={name}
+            onChangeText={setName}
+          />
+
+          <TextInput
+            style={styles.input}
+            placeholder="Precio (€)"
+            keyboardType="numeric"
+            value={price}
+            onChangeText={setPrice}
+          />
+
+          <TextInput
+            style={styles.input}
+            placeholder="Categoría"
+            value={category}
+            onChangeText={setCategory}
+          />
+
+          <TouchableOpacity
+            style={styles.buttonSave}
+            onPress={handleAddProduct}
+          >
+            <Text style={styles.buttonText}>Guardar el progreso</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {screen === "list" && (
+        <View style={styles.inner}>
+          <Text style={styles.title}>Productos seleccionados</Text>
+
+          <FlatList
+            data={products}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={({ item }) => (
+              <View style={styles.productItem}>
+                <View>
+                  <Text style={styles.productName}>{item.name}</Text>
+                  <Text>{item.category}</Text>
+                </View>
+                <Text style={styles.productPrice}>
+                  €{item.price.toFixed(2)}
+                </Text>
+              </View>
+            )}
+          />
+
+          <View style={styles.footer}>
+            <Text style={styles.totalText}>
+              Total de productos: {totalProductos}
+            </Text>
+            <Text style={styles.totalText}>
+              Precio total: €{totalPrecio.toFixed(2)}
+            </Text>
+          </View>
+
+          <TouchableOpacity
+            style={styles.buttonPrimary}
+            onPress={() => setScreen("home")}
+          >
+            <Text style={styles.buttonText}>Volver al inicio</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
+    backgroundColor: "#f8f9fa",
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  inner: {
+    flex: 1,
+    padding: 16,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  title: {
+    fontSize: 22,
+    fontWeight: "bold",
+    marginBottom: 20,
+    color: "#007AFF",
+    textAlign: "center",
+  },
+  input: {
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 10,
+  },
+  buttonPrimary: {
+    backgroundColor: "#007AFF",
+    padding: 14,
+    borderRadius: 10,
+    alignItems: "center",
+    marginTop: 10,
+  },
+  buttonSave: {
+    backgroundColor: "#FFCC00",
+    padding: 14,
+    borderRadius: 10,
+    alignItems: "center",
+    marginTop: 20,
+  },
+  buttonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#fff",
+  },
+  emptyText: {
+    textAlign: "center",
+    fontSize: 16,
+    color: "#666",
+    marginBottom: 20,
+  },
+  productItem: {
+    backgroundColor: "#fff",
+    padding: 12,
+    marginBottom: 10,
+    borderRadius: 10,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    borderWidth: 1,
+    borderColor: "#eee",
+  },
+  productName: {
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  productPrice: {
+    fontSize: 16,
+    color: "#007AFF",
+    fontWeight: "bold",
+  },
+  footer: {
+    marginTop: 20,
+    padding: 12,
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#eee",
+  },
+  totalText: {
+    fontSize: 16,
+    fontWeight: "500",
+    textAlign: "center",
   },
 });
+// import { registerRootComponent } from "expo";
+// import MainScreen from "PGL-MYLIST-FIGURITAS/screens/MainScreen";
+// import React from "react";
+
+// export default function Index() {
+//   return <MainScreen />;
+// }
+
+// registerRootComponent(Index);
