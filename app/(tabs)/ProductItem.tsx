@@ -54,7 +54,6 @@ export default function ProductItem({ item, onToggle, onDelete }: Props) {
 
   return (
     <View style={styles.card}>
-      {/* Fila principal — toca para desplegar el botón eliminar */}
       <TouchableOpacity
         style={styles.row}
         onPress={() => setExpanded(!expanded)}
