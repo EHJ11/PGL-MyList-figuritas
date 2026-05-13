@@ -238,12 +238,3 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 });
-// import { registerRootComponent } from "expo";
-// import MainScreen from "PGL-MYLIST-FIGURITAS/screens/MainScreen";
-// import React from "react";
-
-// export default function Index() {
-//   return <MainScreen />;
-// }
-
-// registerRootComponent(Index);

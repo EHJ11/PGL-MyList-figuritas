@@ -8,8 +8,8 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { Product } from "../types/product";
-import ProductItem from "/app/(tabs)/ProductItem";
+import ProductItem from "../app/(tabs)/ProductItem";
+import { Product } from "../app/types/product";
 
 export default function MainScreen() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -39,7 +39,7 @@ export default function MainScreen() {
 
   const toggleMark = (id: string) => {
     setProducts(
-      products.map((p) => (p.id === id ? { ...p, marked: !p.marked } : p))
+      products.map((p) => (p.id === id ? { ...p, marked: !p.marked } : p)),
     );
   };
 

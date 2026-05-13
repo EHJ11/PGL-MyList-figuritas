@@ -1,8 +1,8 @@
-import { product } from "app/(tabs)/types";
 import React from "react";
 import { Button, StyleSheet, Text, View } from "react-native";
+import { Product } from "../types/product";
 interface Props {
-  item: product;
+  item: Product;
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
 }

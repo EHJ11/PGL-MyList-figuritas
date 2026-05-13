@@ -2,13 +2,6 @@ export type Product = {
   id: string;
   name: string;
   price: number;
-  category: CategoryKey;
+  category: string;
   marked: boolean;
 };
-
-export type CategoryKey =
-  | "antigua"
-  | "moderno"
-  | "fantasia"
-  | "historico"
-  | "misc";
