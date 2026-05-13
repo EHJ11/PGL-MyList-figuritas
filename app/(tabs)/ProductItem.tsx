@@ -9,16 +9,38 @@ import {
 } from "react-native";
 import { Product } from "../types/product";
 
-const CATEGORY_IMAGES: Record<string, ImageSourcePropType> = {
-  "Edad antigua": require("../../../assets/images/icon.png"),
-  "Edad media": require("../../../assets/images/icon.png"),
-  "Edad moderna": require("../../../assets/images/icon.png"),
-  "Edad Contemporanea": require("../../../assets/images/icon.png"),
-  Fantasia: require("../../../assets/images/icon.png"),
-  "ciencia ficcion Futurista": require("../../../assets/images/icon.png"),
-};
+export const CATEGORIES: { label: string; image: ImageSourcePropType }[] = [
+  {
+    label: "Edad antigua",
+    image: require("../../assets/images/SoldadoRomano.png"),
+  },
+  {
+    label: "Edad media",
+    image: require("../../assets/images/SoldadoMedieval.png"),
+  },
+  {
+    label: "Edad moderna",
+    image: require("../../assets/images/SoldadoNapoleonico.png"),
+  },
+  {
+    label: "Edad Contemporanea",
+    image: require("../../assets/images/SoldadoContemporaneo.png"),
+  },
+  {
+    label: "Fantasia",
+    image: require("../../assets/images/SoldadoFantasia.png"),
+  },
+  {
+    label: "ciencia ficcion Futurista",
+    image: require("../../assets/images/SoldadoCienciaFiccion.png"),
+  },
+];
 
-const FALLBACK_IMAGE: ImageSourcePropType = require("../../../assets/images/icon.png");
+const FALLBACK: ImageSourcePropType = require("../../assets/images/icon.png");
+
+export function getImageForCategory(category: string): ImageSourcePropType {
+  return CATEGORIES.find((c) => c.label === category)?.image ?? FALLBACK;
+}
 
 interface Props {
   item: Product;
@@ -27,7 +49,7 @@ interface Props {
 }
 
 export default function ProductItem({ item, onToggle, onDelete }: Props) {
-  const imageSource = CATEGORY_IMAGES[item.category] ?? FALLBACK_IMAGE;
+  const imageSource = getImageForCategory(item.category);
 
   return (
     <View style={styles.row}>
@@ -49,7 +71,11 @@ export default function ProductItem({ item, onToggle, onDelete }: Props) {
         accessibilityLabel={`Mantén pulsado para eliminar ${item.name}`}
       >
         <View style={styles.imageBox}>
-          <Image source={imageSource} style={styles.image} resizeMode="cover" />
+          <Image
+            source={imageSource}
+            style={styles.image}
+            resizeMode="contain"
+          />
         </View>
       </TouchableOpacity>
     </View>
@@ -71,7 +97,6 @@ const styles = StyleSheet.create({
     borderColor: "#d4b44a",
     paddingVertical: 12,
     paddingHorizontal: 14,
-    justifyContent: "center",
   },
   categoryBoxMarked: {
     backgroundColor: "#d1fae5",
@@ -109,8 +134,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   image: {
-    width: 72,
-    height: 72,
-    borderRadius: 10,
+    width: 70,
+    height: 70,
   },
 });
