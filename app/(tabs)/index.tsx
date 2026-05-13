@@ -2,19 +2,15 @@ import React, { useState } from "react";
 import {
   FlatList,
   SafeAreaView,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
-
-type Product = {
-  id: number;
-  name: string;
-  price: number;
-  category: string;
-};
+import { Product } from "../types/product";
+import ProductItem from "./ProductItem";
 
 type Screen = "home" | "add" | "list";
 
@@ -26,215 +22,349 @@ export default function Index() {
   const [price, setPrice] = useState("");
   const [category, setCategory] = useState("");
 
+  const generateId = () =>
+    Date.now().toString() + Math.random().toString(36).substring(2);
+
   const handleAddProduct = () => {
-    if (!name || !price || !category) return;
-
+    if (!name.trim() || !price.trim() || !category.trim()) return;
     const newProduct: Product = {
-      id: Date.now(),
+      id: generateId(),
       name,
-      price: parseFloat(price),
       category,
+      price: parseFloat(price),
+      marked: false,
     };
-
     setProducts([...products, newProduct]);
-
     setName("");
     setPrice("");
     setCategory("");
     setScreen("list");
   };
 
-  const totalProductos = products.length;
-  const totalPrecio = products.reduce((acc, p) => acc + p.price, 0);
+  const toggleMark = (id: string) =>
+    setProducts(
+      products.map((p) => (p.id === id ? { ...p, marked: !p.marked } : p)),
+    );
 
-  return (
-    <SafeAreaView style={styles.container}>
-      {screen === "home" && (
-        <View style={styles.inner}>
-          <Text style={styles.title}>Figuras de plomo.es</Text>
+  const deleteProduct = (id: string) =>
+    setProducts(products.filter((p) => p.id !== id));
 
-          {products.length === 0 ? (
-            <Text style={styles.emptyText}>No hay productos creados</Text>
-          ) : (
-            <FlatList
-              data={products}
-              keyExtractor={(item) => item.id.toString()}
-              renderItem={({ item }) => (
-                <View style={styles.productItem}>
-                  <Text style={styles.productName}>{item.name}</Text>
-                  <Text>{item.category}</Text>
-                  <Text style={styles.productPrice}>
-                    €{item.price.toFixed(2)}
-                  </Text>
-                </View>
-              )}
-            />
-          )}
+  const totalItems = products.length;
+  const totalPrice = products.reduce((acc, p) => acc + p.price, 0).toFixed(2);
 
-          <TouchableOpacity
-            style={styles.buttonPrimary}
-            onPress={() => setScreen("add")}
-          >
-            <Text style={styles.buttonText}>Añadir producto</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {screen === "add" && (
-        <View style={styles.inner}>
-          <Text style={styles.title}>Añadir Figura</Text>
-
-          <TextInput
-            style={styles.input}
-            placeholder="Nombre del producto"
-            value={name}
-            onChangeText={setName}
-          />
-
-          <TextInput
-            style={styles.input}
-            placeholder="Precio (€)"
-            keyboardType="numeric"
-            value={price}
-            onChangeText={setPrice}
-          />
-
-          <TextInput
-            style={styles.input}
-            placeholder="Categoría"
-            value={category}
-            onChangeText={setCategory}
-          />
-
-          <TouchableOpacity
-            style={styles.buttonSave}
-            onPress={handleAddProduct}
-          >
-            <Text style={styles.buttonText}>Guardar el progreso</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {screen === "list" && (
-        <View style={styles.inner}>
-          <Text style={styles.title}>Productos seleccionados</Text>
-
-          <FlatList
-            data={products}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={({ item }) => (
-              <View style={styles.productItem}>
-                <View>
-                  <Text style={styles.productName}>{item.name}</Text>
-                  <Text>{item.category}</Text>
-                </View>
-                <Text style={styles.productPrice}>
-                  €{item.price.toFixed(2)}
-                </Text>
-              </View>
-            )}
-          />
-
-          <View style={styles.footer}>
-            <Text style={styles.totalText}>
-              Total de productos: {totalProductos}
-            </Text>
-            <Text style={styles.totalText}>
-              Precio total: €{totalPrecio.toFixed(2)}
-            </Text>
+  if (screen === "home") {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.screen}>
+          <View style={styles.headerBox}>
+            <Text style={styles.headerText}>Figuras de plomo.es</Text>
           </View>
 
+          <View style={styles.body}>
+            {products.length === 0 ? (
+              <View style={styles.emptyBox}>
+                <Text style={styles.emptyText}>No hay productos creados</Text>
+              </View>
+            ) : (
+              <FlatList
+                data={products}
+                keyExtractor={(item) => item.id}
+                renderItem={({ item }) => (
+                  <ProductItem
+                    item={item}
+                    onToggle={toggleMark}
+                    onDelete={deleteProduct}
+                  />
+                )}
+                contentContainerStyle={{ paddingBottom: 16 }}
+              />
+            )}
+          </View>
+
+          <View style={styles.footer}>
+            <TouchableOpacity
+              style={styles.btnBlue}
+              onPress={() => setScreen("add")}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.btnBlueText}>Añadir producto</Text>
+            </TouchableOpacity>
+
+            {products.length > 0 && (
+              <TouchableOpacity
+                style={[
+                  styles.btnBlue,
+                  { marginTop: 10, backgroundColor: "#93c5fd" },
+                ]}
+                onPress={() => setScreen("list")}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.btnBlueText}>Ver lista completa</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (screen === "add") {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.screen}>
+          <View style={styles.headerBox}>
+            <Text style={styles.headerText}>Figuras de plomo.es</Text>
+          </View>
+
+          <View style={styles.body}>
+            <TextInput
+              style={styles.input}
+              placeholder="Añade su nombre"
+              placeholderTextColor="#5b8dd9"
+              value={name}
+              onChangeText={setName}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Añade su precio"
+              placeholderTextColor="#5b8dd9"
+              keyboardType="numeric"
+              value={price}
+              onChangeText={setPrice}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Añade su categoria"
+              placeholderTextColor="#5b8dd9"
+              value={category}
+              onChangeText={setCategory}
+            />
+          </View>
+
+          <View style={styles.footer}>
+            <TouchableOpacity
+              style={styles.btnYellow}
+              onPress={handleAddProduct}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.btnYellowText}>Guardar el progreso</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.btnBlue, { marginTop: 10 }]}
+              onPress={() => setScreen("home")}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.btnBlueText}>Cancelar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.screen}>
+        <View style={styles.headerBox}>
+          <Text style={styles.headerText}>Figuras de plomo.es</Text>
+        </View>
+
+        <View style={styles.listSubHeader}>
+          <Text style={styles.listSubTitle}>Productos seleccionados:</Text>
           <TouchableOpacity
-            style={styles.buttonPrimary}
+            style={styles.btnYellowSmall}
             onPress={() => setScreen("home")}
+            activeOpacity={0.8}
           >
-            <Text style={styles.buttonText}>Volver al inicio</Text>
+            <Text style={styles.btnYellowSmallText}>
+              Guardar el{"\n"}progreso
+            </Text>
           </TouchableOpacity>
         </View>
-      )}
+
+        <ScrollView
+          style={styles.listScroll}
+          contentContainerStyle={{ paddingBottom: 16 }}
+        >
+          {products.map((item) => (
+            <ProductItem
+              key={item.id}
+              item={item}
+              onToggle={toggleMark}
+              onDelete={deleteProduct}
+            />
+          ))}
+        </ScrollView>
+
+        <View style={styles.listFooter}>
+          <View style={styles.totalBox}>
+            <Text style={styles.totalText}>total de productos:</Text>
+            <Text style={styles.totalValue}>{totalItems}</Text>
+          </View>
+          <View style={styles.totalBox}>
+            <Text style={styles.totalText}>Precio total:</Text>
+            <Text style={styles.totalValue}>{totalPrice} €</Text>
+          </View>
+        </View>
+
+        <TouchableOpacity
+          style={[styles.btnBlue, { margin: 12 }]}
+          onPress={() => setScreen("add")}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.btnBlueText}>Añadir otro producto</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    backgroundColor: "#f8f9fa",
+    backgroundColor: "#dce8f5",
   },
-  inner: {
+  screen: {
     flex: 1,
-    padding: 16,
+    backgroundColor: "#dce8f5",
   },
-  title: {
-    fontSize: 22,
-    fontWeight: "bold",
-    marginBottom: 20,
-    color: "#007AFF",
-    textAlign: "center",
-  },
-  input: {
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 10,
-    padding: 10,
-    marginBottom: 10,
-  },
-  buttonPrimary: {
-    backgroundColor: "#007AFF",
-    padding: 14,
-    borderRadius: 10,
+
+  headerBox: {
+    backgroundColor: "#90c4f0",
+    borderRadius: 20,
+    margin: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
     alignItems: "center",
+    borderWidth: 2,
+    borderColor: "#5b9fd4",
+  },
+  headerText: {
+    fontSize: 26,
+    fontWeight: "800",
+    color: "#0d2f55",
+    letterSpacing: 0.5,
+    fontStyle: "italic",
+  },
+
+  body: {
+    flex: 1,
+    paddingHorizontal: 14,
+    paddingTop: 8,
+  },
+
+  emptyBox: {
+    borderWidth: 1.5,
+    borderColor: "#90c4f0",
+    borderRadius: 14,
+    backgroundColor: "#e8f3fc",
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    alignSelf: "flex-start",
     marginTop: 10,
   },
-  buttonSave: {
-    backgroundColor: "#FFCC00",
-    padding: 14,
-    borderRadius: 10,
-    alignItems: "center",
-    marginTop: 20,
-  },
-  buttonText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#fff",
-  },
   emptyText: {
-    textAlign: "center",
     fontSize: 16,
-    color: "#666",
-    marginBottom: 20,
-  },
-  productItem: {
-    backgroundColor: "#fff",
-    padding: 12,
-    marginBottom: 10,
-    borderRadius: 10,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    borderWidth: 1,
-    borderColor: "#eee",
-  },
-  productName: {
-    fontSize: 16,
+    color: "#2563a8",
     fontWeight: "500",
   },
-  productPrice: {
+
+  input: {
+    backgroundColor: "#e8f3fc",
+    borderWidth: 1.5,
+    borderColor: "#90c4f0",
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    marginBottom: 14,
     fontSize: 16,
-    color: "#007AFF",
-    fontWeight: "bold",
+    color: "#1a3a5c",
   },
+
   footer: {
-    marginTop: 20,
-    padding: 12,
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#eee",
+    padding: 14,
+  },
+
+  btnYellow: {
+    backgroundColor: "#fde68a",
+    borderWidth: 1.5,
+    borderColor: "#d4a017",
+    borderRadius: 16,
+    paddingVertical: 16,
+    alignItems: "center",
+  },
+  btnYellowText: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#7c4a00",
+  },
+
+  btnBlue: {
+    backgroundColor: "#90c4f0",
+    borderWidth: 1.5,
+    borderColor: "#5b9fd4",
+    borderRadius: 16,
+    paddingVertical: 14,
+    alignItems: "center",
+  },
+  btnBlueText: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#0d2f55",
+  },
+
+  listSubHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginHorizontal: 14,
+    marginBottom: 8,
+  },
+  listSubTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#1a3a5c",
+    flex: 1,
+  },
+  btnYellowSmall: {
+    backgroundColor: "#fde68a",
+    borderWidth: 1.5,
+    borderColor: "#d4a017",
+    borderRadius: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    alignItems: "center",
+  },
+  btnYellowSmallText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#7c4a00",
+    textAlign: "center",
+  },
+  listScroll: {
+    flex: 1,
+    paddingHorizontal: 14,
+  },
+  listFooter: {
+    flexDirection: "row",
+    borderTopWidth: 1.5,
+    borderTopColor: "#90c4f0",
+    backgroundColor: "#c7e0f5",
+  },
+  totalBox: {
+    flex: 1,
+    alignItems: "center",
+    paddingVertical: 12,
   },
   totalText: {
-    fontSize: 16,
-    fontWeight: "500",
-    textAlign: "center",
+    fontSize: 13,
+    color: "#1a3a5c",
+    fontWeight: "600",
+  },
+  totalValue: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#0d2f55",
   },
 });

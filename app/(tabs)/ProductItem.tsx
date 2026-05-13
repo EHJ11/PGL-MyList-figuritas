@@ -1,6 +1,25 @@
 import React from "react";
-import { Button, StyleSheet, Text, View } from "react-native";
+import {
+  Image,
+  ImageSourcePropType,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { Product } from "../types/product";
+
+const CATEGORY_IMAGES: Record<string, ImageSourcePropType> = {
+  "Edad antigua": require("../../../assets/images/icon.png"),
+  "Edad media": require("../../../assets/images/icon.png"),
+  "Edad moderna": require("../../../assets/images/icon.png"),
+  "Edad Contemporanea": require("../../../assets/images/icon.png"),
+  Fantasia: require("../../../assets/images/icon.png"),
+  "ciencia ficcion Futurista": require("../../../assets/images/icon.png"),
+};
+
+const FALLBACK_IMAGE: ImageSourcePropType = require("../../../assets/images/icon.png");
+
 interface Props {
   item: Product;
   onToggle: (id: string) => void;
@@ -8,37 +27,90 @@ interface Props {
 }
 
 export default function ProductItem({ item, onToggle, onDelete }: Props) {
+  const imageSource = CATEGORY_IMAGES[item.category] ?? FALLBACK_IMAGE;
+
   return (
-    <View style={styles.item}>
-      <Text
-        style={[styles.name, item.marked && styles.marked]}
+    <View style={styles.row}>
+      <TouchableOpacity
+        style={[styles.categoryBox, item.marked && styles.categoryBoxMarked]}
         onPress={() => onToggle(item.id)}
+        activeOpacity={0.7}
       >
-        {item.name} ({item.category}) - {item.price.toFixed(2)} €
-      </Text>
-      <Button
-        title="Eliminar"
-        color="#ef4444"
-        onPress={() => onDelete(item.id)}
-      />
+        <Text style={[styles.nameText, item.marked && styles.nameTextMarked]}>
+          {item.name}
+        </Text>
+        <Text style={styles.categoryLabel}>{item.category}</Text>
+        <Text style={styles.priceText}>{item.price.toFixed(2)} €</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        onLongPress={() => onDelete(item.id)}
+        activeOpacity={0.85}
+        accessibilityLabel={`Mantén pulsado para eliminar ${item.name}`}
+      >
+        <View style={styles.imageBox}>
+          <Image source={imageSource} style={styles.image} resizeMode="cover" />
+        </View>
+      </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  item: {
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    padding: 10,
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 10,
+    gap: 10,
   },
-  name: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginBottom: 5,
+  categoryBox: {
+    flex: 1,
+    backgroundColor: "#fef9c3",
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: "#d4b44a",
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    justifyContent: "center",
   },
-  marked: {
+  categoryBoxMarked: {
+    backgroundColor: "#d1fae5",
+    borderColor: "#34d399",
+  },
+  nameText: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#3d2b00",
+  },
+  nameTextMarked: {
     textDecorationLine: "line-through",
-    color: "gray",
+    color: "#6b7280",
+  },
+  categoryLabel: {
+    fontSize: 12,
+    color: "#92400e",
+    marginTop: 2,
+  },
+  priceText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#78350f",
+    marginTop: 4,
+  },
+  imageBox: {
+    width: 76,
+    height: 76,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: "#bfdbfe",
+    backgroundColor: "#eff6ff",
+    overflow: "hidden",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  image: {
+    width: 72,
+    height: 72,
+    borderRadius: 10,
   },
 });
